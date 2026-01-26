@@ -202,6 +202,9 @@ debug.get('/processes', async (c) => {
         id: p.id,
         command: p.command,
         status: p.status,
+        startTime: p.startTime?.toISOString(),
+        endTime: p.endTime?.toISOString(),
+        exitCode: p.exitCode,
       };
 
       if (includeLogs) {
