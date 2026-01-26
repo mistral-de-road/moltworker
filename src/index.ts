@@ -237,6 +237,40 @@ export default {
       });
     }
 
+    // Version endpoint - returns build info from inside the container
+    if (url.pathname === '/version') {
+      try {
+        // Read the build info file that was baked into the container at deploy time
+        const process = await sandbox.startProcess('cat /root/.clawdbot/build-info.json');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        const logs = await process.getLogs();
+        
+        let buildInfo = null;
+        try {
+          buildInfo = JSON.parse(logs.stdout || '{}');
+        } catch {
+          // File might not exist in older deployments
+        }
+
+        // Also get clawdbot version
+        const versionProcess = await sandbox.startProcess('clawdbot --version');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        const versionLogs = await versionProcess.getLogs();
+        const clawdbotVersion = (versionLogs.stdout || versionLogs.stderr || '').trim();
+
+        return Response.json({
+          container: buildInfo || { error: 'build-info.json not found (older deployment?)' },
+          clawdbot_version: clawdbotVersion,
+        });
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        return Response.json({
+          status: 'error',
+          message: `Failed to get version info: ${errorMessage}`,
+        }, { status: 500 });
+      }
+    }
+
     // Logs endpoint - returns container logs for debugging
     if (url.pathname === '/logs') {
       try {
