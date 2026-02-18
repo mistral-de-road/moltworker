@@ -446,4 +446,8 @@ app.all('*', async (c) => {
 
 export default {
   fetch: app.fetch,
+  scheduled: async (event: ScheduledEvent, env: MoltbotEnv, ctx: ExecutionContext) => {
+    console.log('[CRON] Scheduled event triggered:', event.cron);
+    // Add periodic maintenance tasks here if needed
+  },
 };
