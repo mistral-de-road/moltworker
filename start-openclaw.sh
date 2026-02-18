@@ -102,7 +102,21 @@ fi
 # ONBOARD (only if no config exists yet)
 # ============================================================
 if [ ! -f "$CONFIG_FILE" ]; then
-    echo "No existing config found, running openclaw onboard..."
+    echo "No existing config found..."
+
+    # Special handling for Gemini: Create manual config to bypass onboard issues
+    if [ -n "$GEMINI_API_KEY" ]; then
+        echo "Creating initial config for Gemini..."
+        cat > "$CONFIG_FILE" << EOFJSON
+{
+  "gateway": {
+    "port": 18789,
+    "mode": "local",
+    "bind": "lan"
+  }
+}
+EOFJSON
+    else
 
     AUTH_ARGS=""
     if [ -n "$CLOUDFLARE_AI_GATEWAY_API_KEY" ] && [ -n "$CF_AI_GATEWAY_ACCOUNT_ID" ] && [ -n "$CF_AI_GATEWAY_GATEWAY_ID" ]; then
@@ -114,8 +128,6 @@ if [ ! -f "$CONFIG_FILE" ]; then
         AUTH_ARGS="--auth-choice apiKey --anthropic-api-key $ANTHROPIC_API_KEY"
     elif [ -n "$OPENAI_API_KEY" ]; then
         AUTH_ARGS="--auth-choice openai-api-key --openai-api-key $OPENAI_API_KEY"
-    elif [ -n "$GEMINI_API_KEY" ]; then
-        AUTH_ARGS="--auth-choice google-ai-studio-api-key --google-ai-studio-api-key $GEMINI_API_KEY"
     fi
 
     openclaw onboard --non-interactive --accept-risk \
@@ -125,9 +137,10 @@ if [ ! -f "$CONFIG_FILE" ]; then
         --gateway-bind lan \
         --skip-channels \
         --skip-skills \
-        --skip-health
-
+        --skip-health \
+    
     echo "Onboard completed"
+    fi
 else
     echo "Using existing config"
 fi
@@ -261,6 +274,21 @@ if (process.env.SLACK_BOT_TOKEN && process.env.SLACK_APP_TOKEN) {
         appToken: process.env.SLACK_APP_TOKEN,
         enabled: true,
     };
+}
+
+// Google AI Studio (Gemini) configuration
+if (process.env.GEMINI_API_KEY) {
+    config.models = config.models || {};
+    config.models.providers = config.models.providers || {};
+    config.models.providers['google-ai-studio'] = {
+        type: 'google-ai-studio',
+        apiKey: process.env.GEMINI_API_KEY
+    };
+    config.agents = config.agents || {};
+    config.agents.defaults = config.agents.defaults || {};
+    config.agents.defaults.model = config.agents.defaults.model || {};
+    config.agents.defaults.model.primary = 'google-ai-studio/gemini-1.5-flash-latest';
+    console.log('Injected Google AI Studio config via GEMINI_API_KEY');
 }
 
 fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
