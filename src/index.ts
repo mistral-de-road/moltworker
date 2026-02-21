@@ -244,6 +244,8 @@ app.all('*', async (c) => {
   const existingProcess = await findExistingMoltbotProcess(sandbox);
   const isGatewayReady = existingProcess !== null && existingProcess.status === 'running';
 
+  console.log(`[PROXY] Status - Process: ${existingProcess?.status || 'none'}, Ready: ${isGatewayReady}`);
+
   // For browser requests (non-WebSocket, non-API), show loading page if gateway isn't ready
   const isWebSocketRequest = request.headers.get('Upgrade')?.toLowerCase() === 'websocket';
   const acceptsHtml = request.headers.get('Accept')?.includes('text/html');
