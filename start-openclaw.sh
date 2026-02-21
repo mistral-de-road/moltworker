@@ -302,6 +302,14 @@ if (process.env.GEMINI_API_KEY) {
     console.log('Injected Google AI Studio config via GEMINI_API_KEY, model: ' + modelId);
 }
 
+// Defensive: Ensure google-ai-studio ALWAYS has a baseUrl if it exists (fixes broken R2 restores)
+if (config?.models?.providers?.['google-ai-studio']) {
+    if (!config.models.providers['google-ai-studio'].baseUrl) {
+        config.models.providers['google-ai-studio'].baseUrl = 'https://generativelanguage.googleapis.com';
+        console.log('[AUTO-LOG] Defensively set missing baseUrl for google-ai-studio provider');
+    }
+}
+
 fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
 console.log('Configuration patched successfully');
 console.log('[AUTO-LOG] Final patched config google-ai-studio provider:', JSON.stringify(config?.models?.providers?.['google-ai-studio'], null, 2));
