@@ -280,17 +280,23 @@ if (process.env.SLACK_BOT_TOKEN && process.env.SLACK_APP_TOKEN) {
 if (process.env.GEMINI_API_KEY) {
     config.models = config.models || {};
     config.models.providers = config.models.providers || {};
-    config.models.providers['google-ai-studio'] = {
-        type: 'google-ai-studio',
-        apiKey: process.env.GEMINI_API_KEY
-    };
-    config.agents = config.agents || {};
-    config.agents.defaults = config.agents.defaults || {};
-    config.agents.defaults.model = config.agents.defaults.model || {};
     
     // Default to 1.5-flash-latest but allow override via GEMINI_MODEL
     const modelId = process.env.GEMINI_MODEL || 'gemini-1.5-flash-latest';
+    
+    config.models.providers['google-ai-studio'] = {
+        api: 'google-generative-ai',
+        apiKey: process.env.GEMINI_API_KEY,
+        models: [
+            { id: modelId, name: modelId, contextWindow: 2097152, maxTokens: 8192 }
+        ]
+    };
+    
+    config.agents = config.agents || {};
+    config.agents.defaults = config.agents.defaults || {};
+    config.agents.defaults.model = config.agents.defaults.model || {};
     config.agents.defaults.model.primary = 'google-ai-studio/' + modelId;
+    
     console.log('Injected Google AI Studio config via GEMINI_API_KEY, model: ' + modelId);
 }
 
