@@ -288,6 +288,7 @@ if (process.env.GEMINI_API_KEY) {
     config.models.providers['google-ai-studio'] = {
         api: 'google-generative-ai',
         apiKey: process.env.GEMINI_API_KEY,
+        baseUrl: 'https://generativelanguage.googleapis.com',
         models: [
             { id: modelId, name: modelId, contextWindow: 2097152, maxTokens: 8192 }
         ]
