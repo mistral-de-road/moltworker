@@ -304,6 +304,7 @@ if (process.env.GEMINI_API_KEY) {
 
 fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
 console.log('Configuration patched successfully');
+console.log('[AUTO-LOG] Final patched config google-ai-studio provider:', JSON.stringify(config?.models?.providers?.['google-ai-studio'], null, 2));
 EOFPATCH
 
 # ============================================================
@@ -357,8 +358,12 @@ fi
 echo "Starting OpenClaw Gateway..."
 echo "Gateway will be available on port 18789"
 
+# Aggressive cleanup of stale locks and processes
+echo "[AUTO-LOG] Cleaning up stale locks and processes..."
 rm -f /tmp/openclaw-gateway.lock 2>/dev/null || true
 rm -f "$CONFIG_DIR/gateway.lock" 2>/dev/null || true
+pkill -9 -f "openclaw gateway" || true
+sleep 1
 
 echo "Dev mode: ${OPENCLAW_DEV_MODE:-false}"
 
