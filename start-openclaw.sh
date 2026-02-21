@@ -21,6 +21,7 @@ SKILLS_DIR="/root/clawd/skills"
 RCLONE_CONF="/root/.config/rclone/rclone.conf"
 LAST_SYNC_FILE="/tmp/.last-sync"
 
+echo "[AUTO-LOG] Starting start-openclaw.sh"
 echo "Config directory: $CONFIG_DIR"
 
 mkdir -p "$CONFIG_DIR"
@@ -141,9 +142,8 @@ EOFJSON
     
     echo "Onboard completed"
     fi
-else
-    echo "Using existing config"
 fi
+echo "[AUTO-LOG] Configuration directory state after onboard: $(ls -A $CONFIG_DIR)"
 
 # ============================================================
 # PATCH CONFIG (channels, gateway auth, trusted proxies)
@@ -153,6 +153,7 @@ fi
 # - Gateway token auth
 # - Trusted proxies for sandbox networking
 # - Base URL override for legacy AI Gateway path
+echo "[AUTO-LOG] Starting config patch via node..."
 node << 'EOFPATCH'
 const fs = require('fs');
 
@@ -362,8 +363,10 @@ echo "Dev mode: ${OPENCLAW_DEV_MODE:-false}"
 
 if [ -n "$OPENCLAW_GATEWAY_TOKEN" ]; then
     echo "Starting gateway with token auth..."
-    exec openclaw gateway --port 18789 --verbose --allow-unconfigured --bind lan --token "$OPENCLAW_GATEWAY_TOKEN"
+    echo "[AUTO-LOG] Running command: openclaw gateway --port 18789 --verbose --allow-unconfigured --bind lan --token [REDACTED]"
+    exec openclaw gateway --port 18789 --verbose --allow-unconfigured --bind lan --token "$OPENCLAW_GATEWAY_TOKEN" 2>&1
 else
     echo "Starting gateway with device pairing (no token)..."
-    exec openclaw gateway --port 18789 --verbose --allow-unconfigured --bind lan
+    echo "[AUTO-LOG] Running command: openclaw gateway --port 18789 --verbose --allow-unconfigured --bind lan"
+    exec openclaw gateway --port 18789 --verbose --allow-unconfigured --bind lan 2>&1
 fi

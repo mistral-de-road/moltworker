@@ -110,18 +110,21 @@ export async function ensureMoltbotGateway(sandbox: Sandbox, env: MoltbotEnv): P
   // Wait for the gateway to be ready
   try {
     console.log('[Gateway] Waiting for OpenClaw gateway to be ready on port', MOLTBOT_PORT);
+    const startWait = Date.now();
     await process.waitForPort(MOLTBOT_PORT, { mode: 'tcp', timeout: STARTUP_TIMEOUT_MS });
-    console.log('[Gateway] OpenClaw gateway is ready!');
+    console.log(`[Gateway] OpenClaw gateway is ready! (waited ${Date.now() - startWait}ms)`);
 
     const logs = await process.getLogs();
-    if (logs.stdout) console.log('[Gateway] stdout:', logs.stdout);
-    if (logs.stderr) console.log('[Gateway] stderr:', logs.stderr);
+    console.log('[Gateway] Final logs after ready check:');
+    console.log('[Gateway] stdout:', logs.stdout || '(empty)');
+    console.log('[Gateway] stderr:', logs.stderr || '(empty)');
   } catch (e) {
     console.error('[Gateway] waitForPort failed:', e);
     try {
       const logs = await process.getLogs();
-      console.error('[Gateway] startup failed. Stderr:', logs.stderr);
-      console.error('[Gateway] startup failed. Stdout:', logs.stdout);
+      console.error('[Gateway] Process status at failure:', process.status);
+      console.error('[Gateway] startup failed. Stderr:', logs.stderr || '(empty)');
+      console.error('[Gateway] startup failed. Stdout:', logs.stdout || '(empty)');
       throw new Error(`OpenClaw gateway failed to start. Stderr: ${logs.stderr || '(empty)'}`, {
         cause: e,
       });
