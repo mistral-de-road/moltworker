@@ -287,8 +287,11 @@ if (process.env.GEMINI_API_KEY) {
     config.agents = config.agents || {};
     config.agents.defaults = config.agents.defaults || {};
     config.agents.defaults.model = config.agents.defaults.model || {};
-    config.agents.defaults.model.primary = 'google-ai-studio/gemini-1.5-flash-latest';
-    console.log('Injected Google AI Studio config via GEMINI_API_KEY');
+    
+    // Default to 1.5-flash-latest but allow override via GEMINI_MODEL
+    const modelId = process.env.GEMINI_MODEL || 'gemini-1.5-flash-latest';
+    config.agents.defaults.model.primary = 'google-ai-studio/' + modelId;
+    console.log('Injected Google AI Studio config via GEMINI_API_KEY, model: ' + modelId);
 }
 
 fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
