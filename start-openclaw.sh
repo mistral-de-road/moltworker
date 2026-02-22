@@ -174,6 +174,13 @@ config.gateway.port = 18789;
 config.gateway.mode = 'local';
 config.gateway.trustedProxies = ['10.1.0.0'];
 
+// controlUi: allowInsecureAuth=true + dmPolicy=open
+// dmPolicy=open means any device connecting via the Control UI is auto-approved
+// This avoids device token mismatch when browser has cached credentials
+config.gateway.controlUi = config.gateway.controlUi || {};
+config.gateway.controlUi.allowInsecureAuth = true;
+config.gateway.controlUi.dmPolicy = 'open';
+
 // Check both env var names: OPENCLAW_GATEWAY_TOKEN (pass-through) and MOLTBOT_GATEWAY_TOKEN (direct)
 const gwToken = process.env.OPENCLAW_GATEWAY_TOKEN || process.env.MOLTBOT_GATEWAY_TOKEN;
 if (gwToken) {
@@ -182,9 +189,9 @@ if (gwToken) {
     console.log('[AUTO-LOG] Set gateway.auth.token from env (length:', gwToken.length, ')');
 } else {
     // No token in env: clear auth to avoid stale R2 backup token causing mismatch
-    if (config.gateway && config.gateway.auth && config.gateway.auth.token) {
-        console.log('[AUTO-LOG] Clearing stale gateway.auth.token from R2 backup (no env token set)');
-        delete config.gateway.auth.token;
+    if (config.gateway && config.gateway.auth) {
+        console.log('[AUTO-LOG] Clearing stale gateway.auth from R2 backup (no env token set)');
+        delete config.gateway.auth;
     }
 }
 
