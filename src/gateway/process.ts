@@ -57,7 +57,7 @@ export async function ensureMoltbotGateway(sandbox: Sandbox, env: MoltbotEnv): P
   console.log('[Gateway] ensureMoltbotGateway starting...');
   // Configure rclone for R2 persistence (non-blocking if not configured).
   // The startup script uses rclone to restore data from R2 on boot.
-  await ensureRcloneConfig(sandbox, env).catch(e => {
+  await ensureRcloneConfig(sandbox, env).catch((e) => {
     console.warn('[Gateway] ensureRcloneConfig failed (continuing):', e);
     return false;
   });
