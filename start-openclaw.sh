@@ -174,12 +174,9 @@ config.gateway.port = 18789;
 config.gateway.mode = 'local';
 config.gateway.trustedProxies = ['10.1.0.0'];
 
-// controlUi: allowInsecureAuth=true + dmPolicy=open
-// dmPolicy=open means any device connecting via the Control UI is auto-approved
-// This avoids device token mismatch when browser has cached credentials
+// controlUi: allowInsecureAuth=true
 config.gateway.controlUi = config.gateway.controlUi || {};
 config.gateway.controlUi.allowInsecureAuth = true;
-config.gateway.controlUi.dmPolicy = 'open';
 
 // Check both env var names: OPENCLAW_GATEWAY_TOKEN (pass-through) and MOLTBOT_GATEWAY_TOKEN (direct)
 const gwToken = process.env.OPENCLAW_GATEWAY_TOKEN || process.env.MOLTBOT_GATEWAY_TOKEN;
