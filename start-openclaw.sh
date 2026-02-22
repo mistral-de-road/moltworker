@@ -63,8 +63,9 @@ if r2_configured; then
     # Check if R2 has an openclaw config backup
     if rclone ls "r2:${R2_BUCKET}/openclaw/openclaw.json" $RCLONE_FLAGS 2>/dev/null | grep -q openclaw.json; then
         echo "Restoring config from R2..."
-        rclone copy "r2:${R2_BUCKET}/openclaw/" "$CONFIG_DIR/" $RCLONE_FLAGS -v 2>&1 || echo "WARNING: config restore failed with exit code $?"
-        echo "Config restored"
+        # Exclude devices/ dir to prevent stale device tokens from being restored
+        rclone copy "r2:${R2_BUCKET}/openclaw/" "$CONFIG_DIR/" $RCLONE_FLAGS --exclude='devices/**' -v 2>&1 || echo "WARNING: config restore failed with exit code $?"
+        echo "Config restored (devices/ excluded)"
     elif rclone ls "r2:${R2_BUCKET}/clawdbot/clawdbot.json" $RCLONE_FLAGS 2>/dev/null | grep -q clawdbot.json; then
         echo "Restoring from legacy R2 backup..."
         rclone copy "r2:${R2_BUCKET}/clawdbot/" "$CONFIG_DIR/" $RCLONE_FLAGS -v 2>&1 || echo "WARNING: legacy config restore failed with exit code $?"
@@ -173,9 +174,18 @@ config.gateway.port = 18789;
 config.gateway.mode = 'local';
 config.gateway.trustedProxies = ['10.1.0.0'];
 
-if (process.env.OPENCLAW_GATEWAY_TOKEN) {
+// Check both env var names: OPENCLAW_GATEWAY_TOKEN (pass-through) and MOLTBOT_GATEWAY_TOKEN (direct)
+const gwToken = process.env.OPENCLAW_GATEWAY_TOKEN || process.env.MOLTBOT_GATEWAY_TOKEN;
+if (gwToken) {
     config.gateway.auth = config.gateway.auth || {};
-    config.gateway.auth.token = process.env.OPENCLAW_GATEWAY_TOKEN;
+    config.gateway.auth.token = gwToken;
+    console.log('[AUTO-LOG] Set gateway.auth.token from env (length:', gwToken.length, ')');
+} else {
+    // No token in env: clear auth to avoid stale R2 backup token causing mismatch
+    if (config.gateway && config.gateway.auth && config.gateway.auth.token) {
+        console.log('[AUTO-LOG] Clearing stale gateway.auth.token from R2 backup (no env token set)');
+        delete config.gateway.auth.token;
+    }
 }
 
 if (process.env.OPENCLAW_DEV_MODE === 'true') {
@@ -340,7 +350,7 @@ if r2_configured; then
             if [ "$COUNT" -gt 0 ]; then
                 echo "[sync] Uploading changes ($COUNT files) at $(date)" >> "$LOGFILE"
                 rclone sync "$CONFIG_DIR/" "r2:${R2_BUCKET}/openclaw/" \
-                    $RCLONE_FLAGS --exclude='*.lock' --exclude='*.log' --exclude='*.tmp' --exclude='.git/**' 2>> "$LOGFILE"
+                    $RCLONE_FLAGS --exclude='*.lock' --exclude='*.log' --exclude='*.tmp' --exclude='.git/**' --exclude='devices/**' 2>> "$LOGFILE"
                 if [ -d "$WORKSPACE_DIR" ]; then
                     rclone sync "$WORKSPACE_DIR/" "r2:${R2_BUCKET}/workspace/" \
                         $RCLONE_FLAGS --exclude='skills/**' --exclude='.git/**' --exclude='node_modules/**' 2>> "$LOGFILE"
