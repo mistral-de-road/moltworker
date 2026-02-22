@@ -222,7 +222,7 @@ if (process.env.CF_AI_GATEWAY_MODEL) {
     if (accountId && gatewayId) {
         baseUrl = 'https://gateway.ai.cloudflare.com/v1/' + accountId + '/' + gatewayId + '/' + gwProvider;
         if (gwProvider === 'workers-ai') baseUrl += '/v1';
-        if (gwProvider === 'google-ai-studio') baseUrl += '/v1beta/openai';
+        if (gwProvider === 'google-ai-studio' || gwProvider === 'google') baseUrl += '/v1beta/openai';
     } else if (gwProvider === 'workers-ai' && process.env.CF_ACCOUNT_ID) {
         baseUrl = 'https://api.cloudflare.com/client/v4/accounts/' + process.env.CF_ACCOUNT_ID + '/ai/v1';
     }
@@ -231,7 +231,7 @@ if (process.env.CF_AI_GATEWAY_MODEL) {
         let api;
         if (gwProvider === 'anthropic') {
             api = 'anthropic-messages';
-        } else if (gwProvider === 'google-ai-studio') {
+        } else if (gwProvider === 'google-ai-studio' || gwProvider === 'google') {
             api = 'google-generative-ai';
         } else {
             api = 'openai-completions';
