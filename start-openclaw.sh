@@ -228,7 +228,14 @@ if (process.env.CF_AI_GATEWAY_MODEL) {
     }
 
     if (baseUrl && apiKey) {
-        const api = gwProvider === 'anthropic' ? 'anthropic-messages' : 'openai-completions';
+        let api;
+        if (gwProvider === 'anthropic') {
+            api = 'anthropic-messages';
+        } else if (gwProvider === 'google-ai-studio') {
+            api = 'google-generative-ai';
+        } else {
+            api = 'openai-completions';
+        }
         const providerName = 'cf-ai-gw-' + gwProvider;
 
         config.models = config.models || {};
@@ -237,12 +244,12 @@ if (process.env.CF_AI_GATEWAY_MODEL) {
             baseUrl: baseUrl,
             apiKey: apiKey,
             api: api,
-            models: [{ id: modelId, name: modelId, contextWindow: 131072, maxTokens: 8192 }],
+            models: [{ id: modelId, name: modelId, contextWindow: 1048576, maxTokens: 8192 }],
         };
         config.agents = config.agents || {};
         config.agents.defaults = config.agents.defaults || {};
         config.agents.defaults.model = { primary: providerName + '/' + modelId };
-        console.log('AI Gateway model override: provider=' + providerName + ' model=' + modelId + ' via ' + baseUrl);
+        console.log('AI Gateway model override: provider=' + providerName + ' model=' + modelId + ' api=' + api + ' via ' + baseUrl);
     } else {
         console.warn('CF_AI_GATEWAY_MODEL set but missing required config (account ID, gateway ID, or API key)');
     }
